@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Repair log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;600;800&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#E8EBE4;--card:#FBFBF8;--ink:#1B2A41;--mute:#586377;--line:#C6CCC0;--crit:#C8372D;--warn:#E8B62A;--ok:#2E7D5B;--onink:#F4F5F0;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#14191F;--card:#1D252F;--ink:#E8EBE4;--mute:#9BA6B6;--line:#2F3945;--crit:#F0675C;--ok:#5BBE92;--onink:#14191F;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#14191F;--card:#1D252F;--ink:#E8EBE4;--mute:#9BA6B6;--line:#2F3945;--crit:#F0675C;--ok:#5BBE92;--onink:#14191F;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 'Bricolage Grotesque',system-ui,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:28px 18px 56px}
+.hand{font-family:'Caveat','Segoe Print',cursive;font-weight:600;font-size:1.4rem;line-height:1.2}
+h1{font-size:clamp(2.8rem,10vw,5.2rem);line-height:.92;margin:6px 0 10px;font-weight:800;letter-spacing:-.035em}
+h2{font-size:1.25rem;margin:0 0 12px}
+.lede{max-width:46ch;color:var(--mute);margin:0}
+.taped{display:inline-block;background:var(--warn);color:#1B2A41;padding:2px 12px;transform:rotate(-2.5deg);margin-left:6px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);margin:26px 0 30px;border-top:4px solid var(--ink);border-bottom:1px solid var(--ink)}
+.stat{all:unset;box-sizing:border-box;cursor:pointer;padding:14px 12px 12px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0}
+.stat b{display:block;font-size:clamp(2.2rem,8vw,3.6rem);line-height:1;font-weight:800}
+.stat span{color:var(--mute);font-size:.95rem}
+.stat.crit{background:repeating-linear-gradient(-45deg,transparent 0 10px,color-mix(in srgb,var(--warn) 24%,transparent) 10px 20px)}
+.stat.crit b{color:var(--crit)}
+.stat[aria-pressed="true"]{box-shadow:inset 0 -5px 0 var(--ink)}
+:focus-visible{outline:3px solid var(--crit);outline-offset:2px}
+.cols{display:grid;grid-template-columns:1fr 340px;gap:30px;align-items:start}
+.bar{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.tag{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;position:relative;background:var(--card);border:1px solid var(--line);border-radius:4px 20px 4px 4px;padding:14px 16px 14px 50px;overflow:hidden}
+.tag:focus-visible{outline:3px solid var(--crit);outline-offset:2px}
+li:nth-child(odd) .tag{transform:rotate(-.35deg)}
+li:nth-child(even) .tag{transform:rotate(.3deg)}
+.tag::before{content:"";position:absolute;left:16px;top:16px;width:14px;height:14px;border-radius:50%;background:var(--paper);border:1.5px solid var(--mute)}
+.tag::after{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--line)}
+.tag.urgent::after{background:var(--warn)}
+.tag.critical::after{background:repeating-linear-gradient(-45deg,var(--warn) 0 6px,#1B2A41 6px 12px)}
+.tag .room{font-weight:800;font-size:1.05rem}
+.tag .what{margin:2px 0 8px}
+.tag .meta{color:var(--mute);font-size:.88rem;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;gap:3px;vertical-align:middle}
+.seg i{width:22px;height:7px;background:var(--line);border-radius:2px}
+.seg i.on{background:var(--ink)}
+.tag.fixed .seg i.on{background:var(--ok)}
+.fixedmark{position:absolute;right:14px;top:10px;color:var(--ok);transform:rotate(-6deg);border:2px solid var(--ok);padding:0 8px;border-radius:4px}
+form.report{position:sticky;top:16px;background:var(--card);border:1.5px solid var(--ink);border-radius:4px;padding:26px 18px 18px;box-shadow:5px 5px 0 var(--ink)}
+form.report::before{content:"";position:absolute;top:-11px;left:30px;width:90px;height:22px;background:color-mix(in srgb,var(--warn) 80%,transparent);transform:rotate(-3deg)}
+label,legend{display:block;font-weight:600;font-size:.92rem;margin:12px 0 4px;padding:0}
+fieldset{border:0;margin:0;padding:0}
+select,textarea,input[type=text],input[type=password]{width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1.5px solid var(--ink);border-radius:4px;padding:8px 10px}
+textarea{min-height:84px;resize:vertical}
+.pri{display:grid;gap:6px}
+.pri label{display:flex;gap:8px;align-items:flex-start;margin:0;font-weight:400;border:1.5px solid var(--line);border-radius:4px;padding:7px 9px;cursor:pointer}
+.pri input:checked+span{font-weight:600}
+.pri label:has(input:checked){border-color:var(--ink);background:var(--paper)}
+.go,.btn{font:inherit;font-weight:600;cursor:pointer;background:var(--ink);color:var(--onink);border:0;border-radius:4px;padding:11px 16px}
+.go{width:100%;margin-top:16px}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.sent{display:none;margin-top:14px;padding:10px 12px;border:1.5px dashed var(--ok);border-radius:4px}
+.sent.show{display:block}
+.sent button{all:unset;cursor:pointer;text-decoration:underline;font-weight:600}
+.empty{padding:26px 8px;color:var(--mute)}
+dialog{border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:6px;max-width:520px;width:calc(100% - 28px);padding:22px}
+dialog::backdrop{background:rgba(8,12,20,.6)}
+dialog h2{font-size:1.5rem;margin:4px 0}
+.steps{display:flex;margin:26px 0 18px;padding:0}
+.steps li{flex:1;text-align:center;font-size:.85rem;position:relative}
+.steps li::before{content:"";display:block;width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);margin:0 auto 6px;background:var(--card);position:relative;z-index:1}
+.steps li::after{content:"";position:absolute;top:10px;left:calc(-50% + 11px);width:calc(100% - 22px);height:2px;background:var(--line)}
+.steps li:first-child::after{display:none}
+.steps li.done::before{background:var(--ink)}
+.steps li.now::before{background:var(--warn)}
+.steps li.done::after,.steps li.now::after{background:var(--ink)}
+.steps li.fin::before{background:var(--ok);border-color:var(--ok)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+footer{margin-top:40px;color:var(--mute)}
+@media (max-width:780px){.cols{grid-template-columns:1fr}form.report{order:-1;position:static}.stats{grid-template-columns:1fr 1fr}.stat:nth-child(3){border-left:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top"><span class="hand" id="here"></span><button class="btn alt" id="staffBtn" type="button">Staff login</button></div>
+    <h1>Repair log<span class="hand taped">prototype</span></h1>
+    <p class="lede">Everything broken around school, what’s urgent, and how far along each fix is. Spot something? Report it in under a minute.</p>
+  </header>
+
+  <div class="stats" id="stats">
+    <button class="stat" data-f="all" aria-pressed="true"><b id="n-all">0</b><span>All issues</span></button>
+    <button class="stat crit" data-f="crit" aria-pressed="false"><b id="n-crit">0</b><span>Critical, still open</span></button>
+    <button class="stat" data-f="pend" aria-pressed="false"><b id="n-pend">0</b><span>Pending</span></button>
+    <button class="stat" data-f="done" aria-pressed="false"><b id="n-done">0</b><span>Resolved</span></button>
+  </div>
+
+  <div class="cols">
+    <section aria-label="Issues">
+      <div class="bar">
+        <h2 id="listTitle">All issues</h2>
+        <label id="roomOnly" hidden style="margin:0;font-weight:400"><input type="checkbox" id="onlyRoom"> Only my room</label>
+      </div>
+      <ul id="list"></ul>
+    </section>
+
+    <form class="report" id="form">
+      <h2>Report a problem</h2>
+      <label for="room">Where is it?</label>
+      <select id="room"></select>
+      <label for="cat">What kind of problem?</label>
+      <select id="cat">
+        <option>Electrical</option><option>Plumbing</option><option>Doors and windows</option><option>Roof and walls</option><option>Furniture</option><option>Air conditioning</option><option>Floors</option><option>Cleaning</option><option>Other</option>
+      </select>
+      <label for="title">What’s wrong?</label>
+      <textarea id="title" required maxlength="200" placeholder="Describe it in a sentence or two"></textarea>
+      <fieldset class="pri">
+        <legend>How urgent is it?</legend>
+        <label><input type="radio" name="pri" value="normal" checked><span>Can wait<br><small>Annoying, not blocking anything</small></span></label>
+        <label><input type="radio" name="pri" value="urgent"><span>Fix this week<br><small>Disrupts a class or a space</small></span></label>
+        <label><input type="radio" name="pri" value="critical"><span>Unsafe, fix now<br><small>Someone could get hurt</small></span></label>
+      </fieldset>
+      <button class="go" type="submit">Send report</button>
+      <div class="sent" id="sent" role="status"></div>
+    </form>
+  </div>
+
+  <footer class="hand">Prototype notes: each classroom’s QR code opens this page with its own room, like “…/repair-log#room-214”. Reports are saved in this browser only, for now.</footer>
+</div>
+
+<dialog id="dlg" aria-labelledby="dTitle"></dialog>
+<dialog id="login" aria-labelledby="lTitle"><form id="loginForm"><span class="hand">Staff only</span><h2 id="lTitle">Administrator login</h2><label for="pw">Password</label><input type="password" id="pw" autocomplete="current-password" required><div id="lerr" role="alert" style="color:var(--crit);min-height:1.5em;margin-top:6px"></div><div class="row"><button class="btn" type="submit">Log in</button><button class="btn alt" type="button" data-lclose>Cancel</button></div><p class="hand" style="margin:14px 0 0;color:var(--mute)">Demo only: the password is “school123”. A real login needs a server, because a password inside the page can be read by anyone.</p></form></dialog>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PRI={normal:'Can wait',urgent:'Fix this week',critical:'Unsafe, fix now'};
+const ST=['Reported','Assigned','In progress','Fixed'];
+const KEY='repairlog-v1';
+const seed=[
+ {id:'R-1042',room:'Science Lab 2',cat:'Plumbing',title:'Gas tap leaking at bench 4',pri:'critical',stage:2,age:1,note:'Lab closed. Gas to bench 4 is shut off.'},
+ {id:'R-1041',room:'Hall B',cat:'Roof and walls',title:'Water dripping from the ceiling near the stage',pri:'critical',stage:1,age:2,note:'Assigned to the building team.'},
+ {id:'R-1040',room:'Room 214',cat:'Electrical',title:'Projector switches off after ten minutes',pri:'urgent',stage:0,age:0,note:''},
+ {id:'R-1039',room:'Gym',cat:'Floors',title:'Loose floorboard by the basketball hoop',pri:'urgent',stage:2,age:4,note:'Replacement boards ordered.'},
+ {id:'R-1038',room:'Room 108',cat:'Doors and windows',title:'Window latch is broken',pri:'normal',stage:1,age:5,note:''},
+ {id:'R-1037',room:'Library',cat:'Air conditioning',title:'AC is blowing warm air',pri:'normal',stage:0,age:6,note:''},
+ {id:'R-1036',room:'Room 301',cat:'Electrical',title:'Two tube lights flicker',pri:'normal',stage:3,age:9,note:'Tubes replaced.'},
+ {id:'R-1035',room:'Boys’ washroom, Block A',cat:'Plumbing',title:'Tap runs constantly',pri:'urgent',stage:3,age:12,note:'Washer replaced.'}];
+let issues;
+try{issues=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!Array.isArray(issues))issues=seed;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(issues))}catch(e){}};
+
+const h=decodeURIComponent(location.hash.slice(1));
+const here=/^room-./i.test(h)?'Room '+h.slice(5):'';
+let filter='all',onlyRoom=false,staff=false;
+const rooms=['Room 108','Room 214','Room 301','Science Lab 2','Hall B','Gym','Library','Boys’ washroom, Block A','Somewhere else'];
+if(here&&!rooms.includes(here))rooms.unshift(here);
+$('#room').innerHTML=rooms.map(r=>`<option${r===here?' selected':''}>${esc(r)}</option>`).join('');
+$('#here').textContent=here?`You’re in ${here}.`:'Showing the whole school.';
+if(here)$('#roomOnly').hidden=false;
+
+const ago=d=>d===0?'today':d===1?'yesterday':d+' days ago';
+const test={all:()=>true,crit:i=>i.pri==='critical'&&i.stage<3,pend:i=>i.stage<3,done:i=>i.stage===3};
+const titles={all:'All issues',crit:'Critical issues, still open',pend:'Pending issues',done:'Resolved issues'};
+const rank=i=>(i.stage===3?10:0)+({critical:0,urgent:1,normal:2}[i.pri]);
+const seg=i=>`<span class="seg" aria-hidden="true">${ST.map((_,k)=>`<i class="${k<=i.stage?'on':''}"></i>`).join('')}</span>`;
+
+function render(){
+  for(const k of ['all','crit','pend','done'])$('#n-'+k).textContent=issues.filter(test[k]).length;
+  document.querySelectorAll('.stat').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===filter));
+  $('#listTitle').textContent=titles[filter];
+  const rows=issues.filter(test[filter]).filter(i=>!onlyRoom||i.room===here).sort((a,b)=>rank(a)-rank(b)||a.age-b.age);
+  $('#list').innerHTML=rows.length?rows.map(i=>`<li><button class="tag ${i.pri}${i.stage===3?' fixed':''}" data-id="${esc(i.id)}">
+    <div class="room">${esc(i.room)}</div><div class="what">${esc(i.title)}</div>
+    <div class="meta">${seg(i)}<span>${ST[i.stage]}</span><span>${esc(i.id)}</span><span>${ago(i.age)}</span></div>
+    ${i.stage===3?'<span class="hand fixedmark">Fixed</span>':''}</button></li>`).join('')
+    :'<li class="empty">Nothing in this view. Spotted a problem? Send a report.</li>';
+}
+
+function ticket(id){
+  const i=issues.find(x=>x.id===id);if(!i)return;
+  $('#dlg').innerHTML=`<span class="hand">${esc(i.id)}, ${esc(i.cat)}</span>
+  <h2 id="dTitle">${esc(i.title)}</h2>
+  <div>${esc(i.room)}. Reported ${ago(i.age)}. ${PRI[i.pri]}.</div>
+  <ol class="steps">${ST.map((s,k)=>`<li class="${k<i.stage?'done':k===i.stage?(i.stage===3?'done fin':'now'):''}">${s}</li>`).join('')}</ol>
+  <div>${i.note?esc(i.note):'No updates yet. The maintenance team will pick this up.'}</div>
+  <div class="row">${i.stage<3&&staff?`<button class="btn" data-adv="${esc(i.id)}">Staff: mark as ${ST[i.stage+1]}</button>`:''}<button class="btn alt" data-close>Close</button></div>`;
+  if(!$('#dlg').open)$('#dlg').showModal();
+}
+
+$('#stats').addEventListener('click',e=>{const b=e.target.closest('.stat');if(b){filter=b.dataset.f;render()}});
+$('#onlyRoom').addEventListener('change',e=>{onlyRoom=e.target.checked;render()});
+$('#list').addEventListener('click',e=>{const b=e.target.closest('.tag');if(b)ticket(b.dataset.id)});
+$('#dlg').addEventListener('click',e=>{
+  if(e.target.closest('[data-close]')||e.target===$('#dlg'))return $('#dlg').close();
+  const a=e.target.closest('[data-adv]');
+  if(a&&staff){const i=issues.find(x=>x.id===a.dataset.adv);i.stage++;i.note=`Marked “${ST[i.stage]}” today.`;save();render();ticket(i.id)}
+});
+$('#form').addEventListener('submit',e=>{
+  e.preventDefault();
+  const n=Math.max(...issues.map(i=>+i.id.slice(2)))+1;
+  const i={id:'R-'+n,room:$('#room').value,cat:$('#cat').value,title:$('#title').value.trim(),pri:document.querySelector('input[name=pri]:checked').value,stage:0,age:0,note:''};
+  issues.unshift(i);save();render();
+  $('#sent').innerHTML=`Ticket <b>${esc(i.id)}</b> is logged. Keep the number to follow the fix. <button type="button" id="openNew">Open ticket</button>`;
+  $('#sent').classList.add('show');
+  $('#openNew').onclick=()=>ticket(i.id);
+  $('#title').value='';
+});
+const sb=$('#staffBtn');
+function setStaff(on){staff=on;sb.textContent=on?'Log out':'Staff login';$('#here').textContent=(here?`You’re in ${here}.`:'Showing the whole school.')+(on?' Staff view.':'');if($('#dlg').open)$('#dlg').close()}
+sb.addEventListener('click',()=>{if(staff){setStaff(false)}else{$('#pw').value='';$('#lerr').textContent='';$('#login').showModal();$('#pw').focus()}});
+$('#loginForm').addEventListener('submit',e=>{e.preventDefault();if($('#pw').value==='school123'){$('#login').close();setStaff(true)}else{$('#lerr').textContent='Wrong password. Try again.'}});
+$('#login').addEventListener('click',e=>{if(e.target.closest('[data-lclose]'))$('#login').close()});
+render();
+</script>
+</body>
+</html>
